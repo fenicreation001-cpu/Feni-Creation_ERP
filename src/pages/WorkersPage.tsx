@@ -32,6 +32,7 @@ import {
 } from '@mui/icons-material';
 import { Worker, CompanySettings } from '../types';
 import { formatRupees, formatDate, formatSalaryMonth, translateRole, translateStatus } from '../utils/formatters';
+import { apiClient } from '../utils/api';
 import { SalaryPrintModal } from '../components/SalaryPrintModal';
 import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { useNotification } from '../context/NotificationContext';
@@ -103,12 +104,10 @@ export const WorkersPage: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const [wRes, sRes] = await Promise.all([
-        fetch('/api/workers'),
-        fetch('/api/settings'),
+      const [wData, sData] = await Promise.all([
+        apiClient.getWorkers(),
+        apiClient.getSettings(),
       ]);
-      const wData = await wRes.json();
-      const sData = await sRes.json();
 
       const processedWorkers = (wData || []).map((w: Worker) => {
         if (!w.advances || w.advances.length === 0) {
@@ -211,21 +210,11 @@ export const WorkersPage: React.FC = () => {
     };
 
     try {
-      const method = selectedWorker ? 'PUT' : 'POST';
-      const url = selectedWorker ? `/api/workers/${selectedWorker.id}` : '/api/workers';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (data.success || data.worker) {
-        showNotification(selectedWorker ? (language === 'gu' ? 'કારીગર પ્રોફાઈલ અપડેટ થઈ!' : 'Worker profile updated!') : (language === 'gu' ? 'નવો કારીગર ઉમેરાયો!' : 'New Karigar added!'), 'success');
-        setFormOpen(false);
-        fetchData();
-      }
+      const workerPayload = selectedWorker ? { ...payload, id: selectedWorker.id } : payload;
+      await apiClient.saveWorker(workerPayload);
+      showNotification(selectedWorker ? (language === 'gu' ? 'કારીગર પ્રોફાઈલ અપડેટ થઈ!' : 'Worker profile updated!') : (language === 'gu' ? 'નવો કારીગર ઉમેરાયો!' : 'New Karigar added!'), 'success');
+      setFormOpen(false);
+      fetchData();
     } catch {
       showNotification('Saved worker record', 'success');
       setFormOpen(false);
@@ -269,13 +258,7 @@ export const WorkersPage: React.FC = () => {
     };
 
     try {
-      const res = await fetch(`/api/workers/${selectedWorker.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedWorker),
-      });
-      const data = await res.json();
-      const savedWorker = data.worker || updatedWorker;
+      const savedWorker = await apiClient.saveWorker(updatedWorker);
       setSelectedWorker(savedWorker);
       setWorkers((prev) => prev.map((item) => (item.id === savedWorker.id ? savedWorker : item)));
       setAdvanceAmountInput('');
@@ -304,13 +287,7 @@ export const WorkersPage: React.FC = () => {
     };
 
     try {
-      const res = await fetch(`/api/workers/${selectedWorker.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedWorker),
-      });
-      const data = await res.json();
-      const savedWorker = data.worker || updatedWorker;
+      const savedWorker = await apiClient.saveWorker(updatedWorker);
       setSelectedWorker(savedWorker);
       setWorkers((prev) => prev.map((item) => (item.id === savedWorker.id ? savedWorker : item)));
       showNotification('Removed Upad entry', 'info');
@@ -324,10 +301,8 @@ export const WorkersPage: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!workerToDelete) return;
     try {
-      const res = await fetch(`/api/workers/${workerToDelete}`, { method: 'DELETE' });
-      if (res.ok) {
-        showNotification('Worker removed from active list', 'success');
-      }
+      await apiClient.deleteWorker(workerToDelete);
+      showNotification('Worker removed from active list', 'success');
       await fetchData();
     } catch {
       showNotification('Worker removed', 'info');

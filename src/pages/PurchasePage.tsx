@@ -38,6 +38,7 @@ import {
 } from '@mui/icons-material';
 import { Purchase, Party } from '../types';
 import { formatRupees, formatDate } from '../utils/formatters';
+import { apiClient } from '../utils/api';
 import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { useNotification } from '../context/NotificationContext';
 import { useThemeContext } from '../context/ThemeContext';
@@ -101,12 +102,10 @@ export const PurchasePage: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const [purRes, partyRes] = await Promise.all([
-        fetch('/api/purchases'),
-        fetch('/api/parties'),
+      const [purData, partyData] = await Promise.all([
+        apiClient.getPurchases(),
+        apiClient.getParties(),
       ]);
-      const purData = await purRes.json();
-      const partyData = await partyRes.json();
       setPurchases(purData || []);
       setSuppliers((partyData || []).filter((p: Party) => (p.type as string) === 'Material Party' || (p.type as string) === 'Supplier' || !p.type));
     } catch {
@@ -268,14 +267,12 @@ export const PurchasePage: React.FC = () => {
   const handleSavePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const method = selectedPurchase ? 'PUT' : 'POST';
-      const url = selectedPurchase ? `/api/purchases/${selectedPurchase.id}` : '/api/purchases';
-
       const { subtotal, cgst, sgst, totalAmount } = calculateGst();
       const materialName = formData.items.map((i) => i.description).filter(Boolean).join(', ') || 'Raw Material';
 
       const payload = {
         ...formData,
+        id: selectedPurchase?.id,
         subtotal,
         cgst,
         sgst,
@@ -292,18 +289,10 @@ export const PurchasePage: React.FC = () => {
         })),
       };
 
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (data.success || data.purchase) {
-        showNotification(selectedPurchase ? 'Purchase entry updated!' : 'New Purchase record added!', 'success');
-        setFormOpen(false);
-        fetchData();
-      }
+      await apiClient.savePurchase(payload);
+      showNotification(selectedPurchase ? 'Purchase entry updated!' : 'New Purchase record added!', 'success');
+      setFormOpen(false);
+      fetchData();
     } catch {
       showNotification('Saved purchase entry', 'success');
       setFormOpen(false);
@@ -313,10 +302,8 @@ export const PurchasePage: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!purchaseToDelete) return;
     try {
-      const res = await fetch(`/api/purchases/${purchaseToDelete}`, { method: 'DELETE' });
-      if (res.ok) {
-        showNotification('Purchase record deleted', 'success');
-      }
+      await apiClient.deletePurchase(purchaseToDelete);
+      showNotification('Purchase record deleted', 'success');
       await fetchData();
     } catch {
       showNotification('Purchase removed', 'info');

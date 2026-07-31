@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as ChartTooltip, Legend, CartesianGrid } from 'recharts';
 import { formatRupees } from '../utils/formatters';
+import { apiClient } from '../utils/api';
 import { DashboardStats } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { useThemeContext } from '../context/ThemeContext';
@@ -41,8 +42,7 @@ export const DashboardPage: React.FC = () => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/dashboard/stats');
-      const data = await res.json();
+      const data = await apiClient.getDashboardStats();
       setStats(data);
     } catch {
       setStats({

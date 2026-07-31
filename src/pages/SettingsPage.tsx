@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { Save as SaveIcon } from '@mui/icons-material';
 import { CompanySettings } from '../types';
+import { apiClient } from '../utils/api';
 import { useNotification } from '../context/NotificationContext';
 import { useThemeContext } from '../context/ThemeContext';
 
@@ -37,8 +38,7 @@ export const SettingsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch('/api/settings')
-      .then((r) => r.json())
+    apiClient.getSettings()
       .then((data) => {
         if (data && data.companyName) {
           setSettings(data);
@@ -51,15 +51,8 @@ export const SettingsPage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('/api/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
-      });
-      const data = await res.json();
-      if (data.success) {
-        showNotification('Settings updated successfully!', 'success');
-      }
+      await apiClient.updateSettings(settings);
+      showNotification('Settings updated successfully!', 'success');
     } catch {
       showNotification('Settings saved', 'success');
     } finally {

@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import { Bill, Purchase, Worker } from '../types';
 import { formatRupees, formatDate } from '../utils/formatters';
+import { apiClient } from '../utils/api';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -36,9 +37,9 @@ export const ReportsPage: React.FC = () => {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/bills').then((r) => r.json()),
-      fetch('/api/purchases').then((r) => r.json()),
-      fetch('/api/workers').then((r) => r.json()),
+      apiClient.getBills(),
+      apiClient.getPurchases(),
+      apiClient.getWorkers(),
     ])
       .then(([b, p, w]) => {
         setBills(b || []);

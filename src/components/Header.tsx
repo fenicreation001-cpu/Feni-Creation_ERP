@@ -45,8 +45,13 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileDrawer, drawerWidt
     const checkDb = async () => {
       try {
         const res = await fetch('/api/db/status');
-        const data = await res.json();
-        setDbConnected(!!data.connected);
+        const contentType = res.headers.get('content-type') || '';
+        if (res.ok && contentType.includes('application/json')) {
+          const data = await res.json();
+          setDbConnected(!!data.connected);
+        } else {
+          setDbConnected(false);
+        }
       } catch {
         setDbConnected(false);
       }

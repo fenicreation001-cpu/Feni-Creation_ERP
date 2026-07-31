@@ -29,6 +29,7 @@ import {
 } from '@mui/icons-material';
 import { Party } from '../types';
 import { formatRupees, formatDate } from '../utils/formatters';
+import { apiClient } from '../utils/api';
 import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { useNotification } from '../context/NotificationContext';
 import { useThemeContext } from '../context/ThemeContext';
@@ -65,8 +66,7 @@ export const PartiesPage: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const res = await fetch('/api/parties');
-      const data = await res.json();
+      const data = await apiClient.getParties();
       setParties(data || []);
     } catch {
       showNotification('Loaded party list', 'info');
@@ -111,21 +111,11 @@ export const PartiesPage: React.FC = () => {
   const handleSaveParty = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const method = selectedParty ? 'PUT' : 'POST';
-      const url = selectedParty ? `/api/parties/${selectedParty.id}` : '/api/parties';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-      if (data.success || data.party) {
-        showNotification(selectedParty ? 'Party details updated!' : 'New Party added!', 'success');
-        setFormOpen(false);
-        fetchData();
-      }
+      const partyPayload = selectedParty ? { ...formData, id: selectedParty.id } : formData;
+      await apiClient.saveParty(partyPayload);
+      showNotification(selectedParty ? 'Party details updated!' : 'New Party added!', 'success');
+      setFormOpen(false);
+      fetchData();
     } catch {
       showNotification('Saved party', 'success');
       setFormOpen(false);
@@ -135,10 +125,8 @@ export const PartiesPage: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!partyToDelete) return;
     try {
-      const res = await fetch(`/api/parties/${partyToDelete}`, { method: 'DELETE' });
-      if (res.ok) {
-        showNotification('Party deleted', 'success');
-      }
+      await apiClient.deleteParty(partyToDelete);
+      showNotification('Party deleted', 'success');
       await fetchData();
     } catch {
       showNotification('Removed party', 'info');

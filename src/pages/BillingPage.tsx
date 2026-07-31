@@ -44,6 +44,7 @@ import {
 } from '@mui/icons-material';
 import { Bill, BillItem, Party, CompanySettings } from '../types';
 import { formatRupees, formatDate } from '../utils/formatters';
+import { apiClient } from '../utils/api';
 import { InvoiceModal } from '../components/InvoiceModal';
 import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { useNotification } from '../context/NotificationContext';
@@ -222,14 +223,11 @@ export const BillingPage: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [billsRes, partiesRes, settingsRes] = await Promise.all([
-        fetch('/api/bills'),
-        fetch('/api/parties'),
-        fetch('/api/settings'),
+      const [billsData, partiesData, settingsData] = await Promise.all([
+        apiClient.getBills(),
+        apiClient.getParties(),
+        apiClient.getSettings(),
       ]);
-      const billsData = await billsRes.json();
-      const partiesData = await partiesRes.json();
-      const settingsData = await settingsRes.json();
       setBills(billsData || []);
       setParties(partiesData || []);
       if (settingsData && settingsData.companyName) setSettings(settingsData);
@@ -493,21 +491,13 @@ export const BillingPage: React.FC = () => {
     };
 
     try {
-      const method = selectedBill ? 'PUT' : 'POST';
-      const url = selectedBill ? `/api/bills/${selectedBill.id}` : '/api/bills';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (data.success || data.bill) {
-        showNotification(selectedBill ? 'Bill updated successfully!' : 'New Bill created successfully!', 'success');
-        setFormOpen(false);
-        fetchData();
+      if (selectedBill) {
+        payload.id = selectedBill.id;
       }
+      await apiClient.saveBill(payload);
+      showNotification(selectedBill ? 'Bill updated successfully!' : 'New Bill created successfully!', 'success');
+      setFormOpen(false);
+      fetchData();
     } catch {
       showNotification('Saved bill successfully', 'success');
       setFormOpen(false);
@@ -517,10 +507,8 @@ export const BillingPage: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!billToDelete) return;
     try {
-      const res = await fetch(`/api/bills/${billToDelete}`, { method: 'DELETE' });
-      if (res.ok) {
-        showNotification('Bill deleted successfully', 'success');
-      }
+      await apiClient.deleteBill(billToDelete);
+      showNotification('Bill deleted successfully', 'success');
       await fetchData();
     } catch {
       showNotification('Bill removed', 'info');

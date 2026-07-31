@@ -52,11 +52,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password: pass }),
       });
-      const data = await response.json();
-      if (data.success && data.user) {
-        setUser(data.user);
-        localStorage.setItem('feni_user', JSON.stringify(data.user));
-        return true;
+      const contentType = response.headers.get('content-type') || '';
+      if (response.ok && contentType.includes('application/json')) {
+        const data = await response.json();
+        if (data.success && data.user) {
+          setUser(data.user);
+          localStorage.setItem('feni_user', JSON.stringify(data.user));
+          return true;
+        }
+      } else {
+        throw new Error('Static host response');
       }
     } catch {
       // Fallback offline login

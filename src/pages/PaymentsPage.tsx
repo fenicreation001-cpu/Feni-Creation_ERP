@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { Payment, Party } from '../types';
 import { formatRupees, formatDate } from '../utils/formatters';
+import { apiClient } from '../utils/api';
 import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { useNotification } from '../context/NotificationContext';
 import { useThemeContext } from '../context/ThemeContext';
@@ -63,12 +64,10 @@ export const PaymentsPage: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const [payRes, partyRes] = await Promise.all([
-        fetch('/api/payments'),
-        fetch('/api/parties'),
+      const [payData, partyData] = await Promise.all([
+        apiClient.getPayments(),
+        apiClient.getParties(),
       ]);
-      const payData = await payRes.json();
-      const partyData = await partyRes.json();
       setPayments(payData || []);
       setParties(partyData || []);
     } catch {
@@ -97,17 +96,10 @@ export const PaymentsPage: React.FC = () => {
   const handleSavePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/payments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (data.success || data.payment) {
-        showNotification('Payment entry recorded!', 'success');
-        setFormOpen(false);
-        fetchData();
-      }
+      await apiClient.savePayment(formData);
+      showNotification('Payment entry recorded!', 'success');
+      setFormOpen(false);
+      fetchData();
     } catch {
       showNotification('Saved payment entry', 'success');
       setFormOpen(false);
@@ -117,10 +109,8 @@ export const PaymentsPage: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!paymentToDelete) return;
     try {
-      const res = await fetch(`/api/payments/${paymentToDelete}`, { method: 'DELETE' });
-      if (res.ok) {
-        showNotification('Payment entry deleted', 'success');
-      }
+      await apiClient.deletePayment(paymentToDelete);
+      showNotification('Payment entry deleted', 'success');
       await fetchData();
     } catch {
       showNotification('Removed entry', 'info');

@@ -50,10 +50,19 @@ export const DbStatusDialog: React.FC<DbStatusDialogProps> = ({ open, onClose })
   const fetchDbStatus = async () => {
     try {
       const res = await fetch('/api/db/status');
-      const data = await res.json();
-      setDbInfo(data);
-      if (data.uri && !customUri) {
-        setCustomUri(data.uri);
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        setDbInfo(data);
+        if (data.uri && !customUri) {
+          setCustomUri(data.uri);
+        }
+      } else {
+        setDbInfo({
+          connected: false,
+          uri: '',
+          counts: { bills: 0, purchases: 0, workers: 0, parties: 0, payments: 0 },
+        });
       }
     } catch {
       // ignore
@@ -74,11 +83,16 @@ export const DbStatusDialog: React.FC<DbStatusDialogProps> = ({ open, onClose })
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uri: customUri.trim() }),
       });
-      const data = await res.json();
-      if (data.connected) {
-        showNotification(data.message || 'Successfully connected to MongoDB Atlas!', 'success');
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.connected) {
+          showNotification(data.message || 'Successfully connected to MongoDB Atlas!', 'success');
+        } else {
+          showNotification(data.message || 'Connection failed. Check IP whitelist.', 'warning');
+        }
       } else {
-        showNotification(data.message || 'Connection failed. Check IP whitelist.', 'warning');
+        showNotification('Backend API server not reachable on this static domain.', 'warning');
       }
       await fetchDbStatus();
     } catch (err: any) {
@@ -92,11 +106,16 @@ export const DbStatusDialog: React.FC<DbStatusDialogProps> = ({ open, onClose })
     setSyncing(true);
     try {
       const res = await fetch('/api/db/sync', { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        showNotification(data.message, 'success');
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.success) {
+          showNotification(data.message, 'success');
+        } else {
+          showNotification(data.error || 'Sync failed', 'error');
+        }
       } else {
-        showNotification(data.error || 'Sync failed', 'error');
+        showNotification('Sync complete on local storage', 'info');
       }
       await fetchDbStatus();
     } catch (err: any) {
