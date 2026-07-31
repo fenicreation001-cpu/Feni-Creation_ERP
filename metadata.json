@@ -1,0 +1,6 @@
+{
+  "name": "FENI CREATION - Billing Management System",
+  "description": "Comprehensive Billing, Purchase, Worker Salary (Karigar Pagar), Party & Payment Management System with GST Calculation, PDF & Excel Reports, and Gujarati language support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
