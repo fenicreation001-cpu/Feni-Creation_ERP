@@ -93,6 +93,7 @@ export const WorkersPage: React.FC = () => {
     bonus: 0,
     paidSalaryAmount: 0,
     paymentMethod: 'Cash',
+    days: 30,
     status: 'Active',
   });
 
@@ -159,6 +160,7 @@ export const WorkersPage: React.FC = () => {
       bonus: 0,
       paidSalaryAmount: 0,
       paymentMethod: 'Cash',
+      days: 30,
       status: 'Active',
     });
     setFormOpen(true);
@@ -177,6 +179,7 @@ export const WorkersPage: React.FC = () => {
       bonus: w.bonus,
       paidSalaryAmount: w.paidSalaryAmount || 0,
       paymentMethod: w.paymentMethod || 'Cash',
+      days: w.days ?? 30,
       status: w.status,
     });
     setFormOpen(true);
@@ -189,6 +192,7 @@ export const WorkersPage: React.FC = () => {
     const bonus = Number(formData.bonus || 0);
     const paidSalaryAmount = Number(formData.paidSalaryAmount || 0);
     const paymentMethod = formData.paymentMethod || 'Cash';
+    const days = Number(formData.days ?? 30);
     const totalPayable = monthlySalary + bonus;
     const totalPaidDeducted = advancePaid + paidSalaryAmount;
     const remainingSalary = totalPayable - totalPaidDeducted;
@@ -201,6 +205,7 @@ export const WorkersPage: React.FC = () => {
       bonus,
       paidSalaryAmount,
       paymentMethod,
+      days,
       remainingSalary,
       status,
     };
@@ -861,11 +866,11 @@ export const WorkersPage: React.FC = () => {
               />
               <TextField
                 fullWidth
-                type="date"
-                label={language === 'gu' ? 'પગાર મહિનો / જોડાણ તારીખ' : 'Salary Month / Joining Date'}
-                value={formData.joiningDate}
-                onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
-                slotProps={{ inputLabel: { shrink: true } }}
+                type="number"
+                label={language === 'gu' ? 'હાજરી દિવસો (Total Days)' : 'Total Work Days / Days'}
+                value={formData.days}
+                onChange={(e) => setFormData({ ...formData, days: Number(e.target.value) })}
+                slotProps={{ htmlInput: { min: 0, max: 31, step: 1 } }}
               />
             </Box>
 
@@ -889,6 +894,17 @@ export const WorkersPage: React.FC = () => {
                 <MenuItem value="Cheque">{language === 'gu' ? 'ચેક (Cheque)' : 'Cheque'}</MenuItem>
                 <MenuItem value="UPI">{language === 'gu' ? 'યુપીઆઈ / ઓનલાઈન (UPI)' : 'UPI / Online'}</MenuItem>
               </TextField>
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <TextField
+                fullWidth
+                type="date"
+                label={language === 'gu' ? 'પગાર મહિનો / જોડાણ તારીખ' : 'Salary Month / Joining Date'}
+                value={formData.joiningDate}
+                onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
             </Box>
 
             {/* LIVE SALARY VALUATION & NET CALCULATION BREAKDOWN CARD */}
@@ -944,6 +960,13 @@ export const WorkersPage: React.FC = () => {
                 />
               </Box>
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, fontSize: '0.85rem' }}>
+                <Box sx={{ color: mode === 'dark' ? '#cbd5e1' : '#475569' }}>
+                  {language === 'gu' ? 'હાજરી દિવસો (Total Days):' : 'Total Days Worked:'}
+                </Box>
+                <Box sx={{ fontWeight: 700, textAlign: 'right', color: mode === 'dark' ? '#f8fafc' : '#0f172a' }}>
+                  {formData.days ?? 30} {language === 'gu' ? 'દિવસ' : 'days'}
+                </Box>
+
                 <Box sx={{ color: mode === 'dark' ? '#cbd5e1' : '#475569' }}>
                   {language === 'gu' ? 'માસિક મૂળ પગાર (Base Salary):' : 'Monthly Base Salary:'}
                 </Box>

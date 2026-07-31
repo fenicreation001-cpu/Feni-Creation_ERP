@@ -558,6 +558,7 @@ app.post('/api/workers', async (req: Request, res: Response) => {
   const bonus = Number(worker.bonus || 0);
   const paidSalaryAmount = Number(worker.paidSalaryAmount || 0);
   const paymentMethod = worker.paymentMethod || 'Cash';
+  const days = Number(worker.days || 30);
 
   const totalPayable = monthlySalary + bonus;
   const totalPaidDeducted = advancePaid + paidSalaryAmount;
@@ -576,6 +577,7 @@ app.post('/api/workers', async (req: Request, res: Response) => {
     bonus,
     paidSalaryAmount,
     paymentMethod,
+    days,
     remainingSalary,
     status,
     joiningDate: worker.joiningDate || new Date().toISOString().split('T')[0],
@@ -612,6 +614,7 @@ app.put('/api/workers/:id', async (req: Request, res: Response) => {
     const bonus = Number(updated.bonus || 0);
     const paidSalaryAmount = Number(updated.paidSalaryAmount || 0);
     const paymentMethod = updated.paymentMethod || 'Cash';
+    const days = Number(updated.days ?? 30);
 
     const totalPayable = monthlySalary + bonus;
     const totalPaidDeducted = advancePaid + paidSalaryAmount;
@@ -629,6 +632,7 @@ app.put('/api/workers/:id', async (req: Request, res: Response) => {
       bonus,
       paidSalaryAmount,
       paymentMethod,
+      days,
       remainingSalary,
       status,
     };

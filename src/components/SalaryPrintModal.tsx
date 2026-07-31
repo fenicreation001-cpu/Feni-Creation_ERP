@@ -105,7 +105,7 @@ export const SalaryPrintModal: React.FC<SalaryPrintModalProps> = ({
               <Typography variant="body2" color="text.secondary">Role / કામગીરી:</Typography>
               <Typography variant="body1" sx={{ fontWeight: 600 }}>{worker.role}</Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                Mobile: {worker.mobile}
+                Mobile: {worker.mobile} | Days: <strong>{worker.days ?? 30} days</strong>
               </Typography>
             </Box>
           </Box>
