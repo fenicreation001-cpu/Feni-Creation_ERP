@@ -20,11 +20,20 @@ const defaultSettings: CompanySettings = {
   gujaratiSupport: true,
 };
 
-// Client-side Local Storage helpers
+// Client-side Local Storage helpers with pre-seeded data
 const getLocal = <T>(key: string, fallback: T): T => {
   try {
     const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : fallback;
+    if (!item) {
+      setLocal(key, fallback);
+      return fallback;
+    }
+    const parsed = JSON.parse(item);
+    if (Array.isArray(parsed) && parsed.length === 0 && Array.isArray(fallback) && fallback.length > 0) {
+      setLocal(key, fallback);
+      return fallback;
+    }
+    return parsed;
   } catch {
     return fallback;
   }
@@ -35,6 +44,265 @@ const setLocal = <T>(key: string, value: T): void => {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {}
 };
+
+// Default Initial Sample Data for Static / Offline / Netlify deployments
+const defaultParties: Party[] = [
+  {
+    id: 'p1',
+    name: 'Radhe Krishna Prints',
+    contactPerson: 'Rameshbhai Patel',
+    type: 'Textile Party',
+    mobile: '+91 98251 12345',
+    gstin: '24AAACR1234F1Z1',
+    address: 'Ring Road Market, Surat, Gujarat',
+    openingBalance: 15000,
+    createdAt: '2026-01-10',
+  },
+  {
+    id: 'p2',
+    name: 'Shree Ram Silk Mills',
+    contactPerson: 'Sanjaybhai Shah',
+    type: 'Textile Party',
+    mobile: '+91 98980 54321',
+    gstin: '24AABCS5678G1Z2',
+    address: 'Sardar Market, Varachha, Surat',
+    openingBalance: 28000,
+    createdAt: '2026-01-12',
+  },
+  {
+    id: 'p3',
+    name: 'Surat Yarns & Threads Co.',
+    contactPerson: 'Kiritbhai Goti',
+    type: 'Material Party',
+    mobile: '+91 97243 99887',
+    gstin: '24AACSY9012H1Z3',
+    address: 'GIDC Katargam, Surat, Gujarat',
+    openingBalance: 0,
+    createdAt: '2026-01-15',
+  },
+  {
+    id: 'p4',
+    name: 'Vraj Fashion Saree',
+    contactPerson: 'Dinesh Kakadiya',
+    type: 'Textile Party',
+    mobile: '+91 94268 11223',
+    gstin: '24AAACV3456I1Z4',
+    address: 'Millennium Textile Market, Surat',
+    openingBalance: 8500,
+    createdAt: '2026-01-20',
+  },
+];
+
+const defaultBills: Bill[] = [
+  {
+    id: 'b1',
+    invoiceNo: 'FC-2026-001',
+    partyId: 'p1',
+    partyName: 'Radhe Krishna Prints',
+    date: '2026-07-25',
+    dueDate: '2026-08-10',
+    items: [
+      { id: 'bi1', description: 'Multi Embroidery Design Saree (Gold Zari)', quantity: 450, rate: 85, total: 38250, stitches: 24000 },
+      { id: 'bi2', description: 'Sequins Cording Border Work', quantity: 300, rate: 60, total: 18000, stitches: 18000 },
+    ],
+    subtotal: 56250,
+    taxRate: 5,
+    totalTax: 2812.5,
+    chargeAmount: 500,
+    totalAmount: 59562.5,
+    paidAmount: 30000,
+    pendingAmount: 29562.5,
+    status: 'Partial',
+    notes: 'Urgent saree delivery batch 1',
+    createdAt: '2026-07-25T10:00:00.000Z',
+  },
+  {
+    id: 'b2',
+    invoiceNo: 'FC-2026-002',
+    partyId: 'p2',
+    partyName: 'Shree Ram Silk Mills',
+    date: '2026-07-28',
+    dueDate: '2026-08-15',
+    items: [
+      { id: 'bi3', description: 'Daman Heavy Coding Embroidery (Dupatta)', quantity: 200, rate: 140, total: 28000, stitches: 45000 },
+      { id: 'bi4', description: 'Schiffli Lace Embroidery Work', quantity: 150, rate: 110, total: 16500, stitches: 32000 },
+    ],
+    subtotal: 44500,
+    taxRate: 5,
+    totalTax: 2225,
+    chargeAmount: 0,
+    totalAmount: 46725,
+    paidAmount: 46725,
+    pendingAmount: 0,
+    status: 'Paid',
+    notes: 'Full payment received via UPI',
+    createdAt: '2026-07-28T14:30:00.000Z',
+  },
+  {
+    id: 'b3',
+    invoiceNo: 'FC-2026-003',
+    partyId: 'p4',
+    partyName: 'Vraj Fashion Saree',
+    date: '2026-07-30',
+    dueDate: '2026-08-20',
+    items: [
+      { id: 'bi5', description: 'Garba Chaniya Choli Multi Work', quantity: 120, rate: 210, total: 25200, stitches: 55000 },
+    ],
+    subtotal: 25200,
+    taxRate: 5,
+    totalTax: 1260,
+    chargeAmount: 200,
+    totalAmount: 26660,
+    paidAmount: 0,
+    pendingAmount: 26660,
+    status: 'Pending',
+    notes: 'Payment due within 20 days',
+    createdAt: '2026-07-30T11:15:00.000Z',
+  },
+];
+
+const defaultPurchases: Purchase[] = [
+  {
+    id: 'pur1',
+    purchaseNo: 'PUR-2026-089',
+    supplierId: 'p3',
+    supplierName: 'Surat Yarns & Threads Co.',
+    supplierGstin: '24AACSY9012H1Z3',
+    date: '2026-07-20',
+    items: [
+      { id: 'pi1', description: '120D/2 Viscose Embroidery Thread Spools (Gold)', quantity: 100, rate: 180, total: 18000 },
+      { id: 'pi2', description: '75D/2 Metallic Zari Thread Cone', quantity: 50, rate: 250, total: 12500 },
+    ],
+    subtotal: 30500,
+    taxRate: 5,
+    totalTax: 1525,
+    totalAmount: 32025,
+    paidAmount: 32025,
+    pendingAmount: 0,
+    status: 'Paid',
+    paymentMethod: 'Bank Transfer',
+    notes: 'Yarn material delivered to Factory unit 1',
+    createdAt: '2026-07-20T09:00:00.000Z',
+  },
+  {
+    id: 'pur2',
+    purchaseNo: 'PUR-2026-094',
+    supplierId: 'p3',
+    supplierName: 'Surat Yarns & Threads Co.',
+    supplierGstin: '24AACSY9012H1Z3',
+    date: '2026-07-27',
+    items: [
+      { id: 'pi3', description: 'Paper Backing Roll (80 GSM)', quantity: 30, rate: 450, total: 13500 },
+    ],
+    subtotal: 13500,
+    taxRate: 5,
+    totalTax: 675,
+    totalAmount: 14175,
+    paidAmount: 5000,
+    pendingAmount: 9175,
+    status: 'Partial',
+    paymentMethod: 'UPI',
+    notes: 'Remaining amount due next week',
+    createdAt: '2026-07-27T16:20:00.000Z',
+  },
+];
+
+const defaultWorkers: Worker[] = [
+  {
+    id: 'w1',
+    name: 'Rajesh Bhai',
+    gujaratiName: 'રાજેશ ભાઈ',
+    role: 'Embroidery Machine Operator',
+    mobile: '+91 98765 11223',
+    joiningDate: '2024-03-15',
+    monthlySalary: 22000,
+    advancePaid: 3000,
+    advances: [
+      { id: 'adv1', date: '2026-07-10', amount: 3000, reason: 'Personal Emergency' },
+    ],
+    bonus: 1000,
+    paidSalaryAmount: 15000,
+    paymentMethod: 'Cash',
+    days: 30,
+    remainingSalary: 5000,
+    status: 'Partial',
+  },
+  {
+    id: 'w2',
+    name: 'Ketan Patel',
+    gujaratiName: 'કેતન પટેલ',
+    role: 'Design Master / Puncher',
+    mobile: '+91 97123 44556',
+    joiningDate: '2023-08-01',
+    monthlySalary: 28000,
+    advancePaid: 0,
+    advances: [],
+    bonus: 2000,
+    paidSalaryAmount: 30000,
+    paymentMethod: 'Bank Transfer',
+    days: 30,
+    remainingSalary: 0,
+    status: 'Paid',
+  },
+  {
+    id: 'w3',
+    name: 'Manoj Kumar',
+    gujaratiName: 'મનોજ કુમાર',
+    role: 'Thread Cutter & Finishing Helper',
+    mobile: '+91 99099 88776',
+    joiningDate: '2025-01-10',
+    monthlySalary: 16000,
+    advancePaid: 2000,
+    advances: [
+      { id: 'adv2', date: '2026-07-15', amount: 2000, reason: 'Festival Advance' },
+    ],
+    bonus: 0,
+    paidSalaryAmount: 0,
+    paymentMethod: 'UPI',
+    days: 28,
+    remainingSalary: 14000,
+    status: 'Pending',
+  },
+];
+
+const defaultPayments: Payment[] = [
+  {
+    id: 'pay1',
+    date: '2026-07-26',
+    partyId: 'p1',
+    partyName: 'Radhe Krishna Prints',
+    type: 'Received',
+    refInvoiceNo: 'FC-2026-001',
+    amount: 30000,
+    paymentMethod: 'UPI',
+    notes: 'Advance part payment for Bill FC-2026-001',
+    createdAt: '2026-07-26T12:00:00.000Z',
+  },
+  {
+    id: 'pay2',
+    date: '2026-07-28',
+    partyId: 'p2',
+    partyName: 'Shree Ram Silk Mills',
+    type: 'Received',
+    refInvoiceNo: 'FC-2026-002',
+    amount: 46725,
+    paymentMethod: 'Bank Transfer',
+    notes: 'Full settlement for Bill FC-2026-002',
+    createdAt: '2026-07-28T15:00:00.000Z',
+  },
+  {
+    id: 'pay3',
+    date: '2026-07-21',
+    partyId: 'p3',
+    partyName: 'Surat Yarns & Threads Co.',
+    type: 'Paid',
+    refInvoiceNo: 'PUR-2026-089',
+    amount: 32025,
+    paymentMethod: 'Bank Transfer',
+    notes: 'Supplier payment for thread purchase',
+    createdAt: '2026-07-21T11:00:00.000Z',
+  },
+];
 
 // Safe fetch wrapper that handles non-JSON / HTML responses (e.g. Netlify static server fallback)
 async function safeFetchJson<T>(url: string, options?: RequestInit): Promise<T | null> {
@@ -86,7 +354,7 @@ export const apiClient = {
       setLocal('feni_parties', remote);
       return remote;
     }
-    return getLocal<Party[]>('feni_parties', []);
+    return getLocal<Party[]>('feni_parties', defaultParties);
   },
 
   async saveParty(party: Partial<Party>): Promise<Party> {
@@ -99,7 +367,7 @@ export const apiClient = {
       body: JSON.stringify(party),
     });
 
-    const current = getLocal<Party[]>('feni_parties', []);
+    const current = getLocal<Party[]>('feni_parties', defaultParties);
     let updatedItem: Party;
 
     if (remote && remote.id) {
@@ -128,7 +396,7 @@ export const apiClient = {
 
   async deleteParty(id: string): Promise<boolean> {
     await safeFetchJson(`/api/parties/${id}`, { method: 'DELETE' });
-    const current = getLocal<Party[]>('feni_parties', []);
+    const current = getLocal<Party[]>('feni_parties', defaultParties);
     setLocal('feni_parties', current.filter((p) => p.id !== id));
     return true;
   },
@@ -140,7 +408,7 @@ export const apiClient = {
       setLocal('feni_bills', remote);
       return remote;
     }
-    return getLocal<Bill[]>('feni_bills', []);
+    return getLocal<Bill[]>('feni_bills', defaultBills);
   },
 
   async saveBill(bill: Partial<Bill>): Promise<Bill> {
@@ -153,7 +421,7 @@ export const apiClient = {
       body: JSON.stringify(bill),
     });
 
-    const current = getLocal<Bill[]>('feni_bills', []);
+    const current = getLocal<Bill[]>('feni_bills', defaultBills);
     let updatedItem: Bill;
 
     if (remote && remote.id) {
@@ -190,7 +458,7 @@ export const apiClient = {
 
   async deleteBill(id: string): Promise<boolean> {
     await safeFetchJson(`/api/bills/${id}`, { method: 'DELETE' });
-    const current = getLocal<Bill[]>('feni_bills', []);
+    const current = getLocal<Bill[]>('feni_bills', defaultBills);
     setLocal('feni_bills', current.filter((b) => b.id !== id));
     return true;
   },
@@ -202,7 +470,7 @@ export const apiClient = {
       setLocal('feni_purchases', remote);
       return remote;
     }
-    return getLocal<Purchase[]>('feni_purchases', []);
+    return getLocal<Purchase[]>('feni_purchases', defaultPurchases);
   },
 
   async savePurchase(purchase: Partial<Purchase>): Promise<Purchase> {
@@ -215,7 +483,7 @@ export const apiClient = {
       body: JSON.stringify(purchase),
     });
 
-    const current = getLocal<Purchase[]>('feni_purchases', []);
+    const current = getLocal<Purchase[]>('feni_purchases', defaultPurchases);
     let updatedItem: Purchase;
 
     if (remote && remote.id) {
@@ -252,7 +520,7 @@ export const apiClient = {
 
   async deletePurchase(id: string): Promise<boolean> {
     await safeFetchJson(`/api/purchases/${id}`, { method: 'DELETE' });
-    const current = getLocal<Purchase[]>('feni_purchases', []);
+    const current = getLocal<Purchase[]>('feni_purchases', defaultPurchases);
     setLocal('feni_purchases', current.filter((p) => p.id !== id));
     return true;
   },
@@ -264,7 +532,7 @@ export const apiClient = {
       setLocal('feni_workers', remote);
       return remote;
     }
-    return getLocal<Worker[]>('feni_workers', []);
+    return getLocal<Worker[]>('feni_workers', defaultWorkers);
   },
 
   async saveWorker(worker: Partial<Worker>): Promise<Worker> {
@@ -277,7 +545,7 @@ export const apiClient = {
       body: JSON.stringify(worker),
     });
 
-    const current = getLocal<Worker[]>('feni_workers', []);
+    const current = getLocal<Worker[]>('feni_workers', defaultWorkers);
     let updatedItem: Worker;
 
     if (remote && remote.id) {
@@ -324,7 +592,7 @@ export const apiClient = {
 
   async deleteWorker(id: string): Promise<boolean> {
     await safeFetchJson(`/api/workers/${id}`, { method: 'DELETE' });
-    const current = getLocal<Worker[]>('feni_workers', []);
+    const current = getLocal<Worker[]>('feni_workers', defaultWorkers);
     setLocal('feni_workers', current.filter((w) => w.id !== id));
     return true;
   },
@@ -336,7 +604,7 @@ export const apiClient = {
       setLocal('feni_payments', remote);
       return remote;
     }
-    return getLocal<Payment[]>('feni_payments', []);
+    return getLocal<Payment[]>('feni_payments', defaultPayments);
   },
 
   async savePayment(payment: Partial<Payment>): Promise<Payment> {
@@ -349,7 +617,7 @@ export const apiClient = {
       body: JSON.stringify(payment),
     });
 
-    const current = getLocal<Payment[]>('feni_payments', []);
+    const current = getLocal<Payment[]>('feni_payments', defaultPayments);
     let updatedItem: Payment;
 
     if (remote && remote.id) {
@@ -379,7 +647,7 @@ export const apiClient = {
 
   async deletePayment(id: string): Promise<boolean> {
     await safeFetchJson(`/api/payments/${id}`, { method: 'DELETE' });
-    const current = getLocal<Payment[]>('feni_payments', []);
+    const current = getLocal<Payment[]>('feni_payments', defaultPayments);
     setLocal('feni_payments', current.filter((p) => p.id !== id));
     return true;
   },
@@ -391,9 +659,9 @@ export const apiClient = {
       return remote;
     }
 
-    const bills = getLocal<Bill[]>('feni_bills', []);
-    const purchases = getLocal<Purchase[]>('feni_purchases', []);
-    const workers = getLocal<Worker[]>('feni_workers', []);
+    const bills = getLocal<Bill[]>('feni_bills', defaultBills);
+    const purchases = getLocal<Purchase[]>('feni_purchases', defaultPurchases);
+    const workers = getLocal<Worker[]>('feni_workers', defaultWorkers);
 
     const totalSales = bills.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
     const totalPurchase = purchases.reduce((acc, p) => acc + (p.totalAmount || 0), 0);
